@@ -1,0 +1,16 @@
+> **COLLABORATORS: Please, do not edit this page by hand, this was automatically generated (on {2}).**
+
+
+***
+
+> **TIP**: Use **Ctrl + F _(⌘ + F on mac)_** to find a specific command, or use Quick Links below.
+
+
+**Argument syntax: ```<optional> [required]```**
+
+
+## Quick links:
+{0}
+
+
+{1}

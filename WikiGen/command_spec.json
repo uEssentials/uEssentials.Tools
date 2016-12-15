@@ -1,0 +1,17 @@
+{
+  "tpa": {
+    "additional_permissions": [
+      "essentials.command.tpa.send",
+      "essentials.command.tpa.accept",
+      "essentials.command.tpa.deny",
+      "essentials.command.tpa.cancel"
+    ]
+  },
+
+  "clearinventory": {
+    "additional_permissions": [
+      "essentials.command.clearinventory.all | Allow to clear inventory of everyone.",
+      "essentials.command.clearinventory.other | Allow to clear inventory of another player"
+    ]
+  }
+}
