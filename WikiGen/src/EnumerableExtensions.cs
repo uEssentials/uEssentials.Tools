@@ -26,9 +26,7 @@ namespace WikiGen {
   public static class EnumerableExtensions {
 
     public static void ForEach<T>(this IEnumerable<T> src, Action<T> action) {
-      foreach (var obj in src) {
-        action(obj);
-      }
+      foreach (var obj in src) action(obj);
     }
 
   }
