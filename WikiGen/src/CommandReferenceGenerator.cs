@@ -24,34 +24,14 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Mono.Cecil;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NVelocity;
+using NVelocity.App;
 
 namespace WikiGen {
 
   public class CommandReferenceGenerator {
-
-    /// <summary>
-    ///
-    /// Markdown Example:
-    ///
-    /// Name: boom
-    /// Description: Create an explosion on player's/given position
-    /// Usage: /boom [player | * | x, y, z]
-    /// Aliases:
-    ///  - explode
-    /// Permissions:
-    ///  - essentials.command.boom
-    ///
-    /// </summary>
-    private struct CommandTemplate {
-
-      public string Name;
-      public string Usage;
-      public string Description;
-      public string[] Aliases;
-      public string[] Permissions;
-
-    }
 
     /// <summary>
     /// arg 0 = working directory, resources must be in this directory.
@@ -60,21 +40,42 @@ namespace WikiGen {
     /// </summary>
     /// <param name="args"></param>
     public static void GenerateCommands(string[] args) {
-      if (args.Length < 3) {
-        Console.WriteLine("Use `GenerateCommands [Working directory] [uEssentials assembly path] [markdown output path]");
+      if (args.Length < 4) {
+        Console.WriteLine("Use `GenerateCommands [Working directory] [uEssentials assembly path] [markdown output path] [Locale]");
         Environment.Exit(-1);
       }
 
       var workingDirectory = args[0];
       var essAssemblyPath = args[1];
       var markdownOutputPath = args[2];
+      var locale = args[3];
+
+      var templatePath = Path.Combine(workingDirectory, $"template_{locale}.txt");
+      var commandSpecPath = Path.Combine(workingDirectory, $"command_spec_{locale}.json");
+      var commandTemplatePath = Path.Combine(workingDirectory, $"command_template_{locale}.vm");
+
+      // Load default files
+      if (!File.Exists(templatePath)) {
+        templatePath = Path.Combine(workingDirectory, "template_en-US.txt");
+      }
+
+      if (!File.Exists(commandSpecPath)) {
+        commandSpecPath = Path.Combine(workingDirectory, "command_spec_en-US.json");
+      }
+
+      if (!File.Exists(commandTemplatePath)) {
+        commandTemplatePath = Path.Combine(workingDirectory, "command_template_en-US.vm");
+      }
 
       if (!File.Exists(essAssemblyPath)) {
-        Console.WriteLine("File not found: {0}", essAssemblyPath);
+        Console.Error.WriteLine("File not found: {0}", essAssemblyPath);
         Environment.Exit(-1);
       }
 
-      var commandSpecPath = Path.Combine(workingDirectory, "command_spec.json");
+      Console.WriteLine("TemplatePath: {0}", templatePath);
+      Console.WriteLine("CommandSpecPath: {0}", commandSpecPath);
+      Console.WriteLine("CommandTemplatePath: {0}", commandTemplatePath);
+
       JObject commandsSpec = null;
 
       if (File.Exists(commandSpecPath)) {
@@ -88,8 +89,11 @@ namespace WikiGen {
         "Essentials.Api.Command.CommandInfo".Equals(attr.AttributeType.FullName)
       );
 
-      var commandsMarkdown = new StringBuilder();
+      var commandsMarkdownWriter = new StringWriter();
       var quickLinksMarkdown = new StringBuilder();
+
+      // Init velocity
+      Velocity.Init();
 
       mainModule.Types
         .SelectMany(type => {
@@ -130,60 +134,57 @@ namespace WikiGen {
                 break;
             }
 
-            var defaultPermission = $"essentials.command.{commandTemplate.Name}";
+            var defaultPermission = new Permission {
+              Value = $"essentials.command.{commandTemplate.Name}"
+            };
 
             var commandSpec = commandsSpec?[commandTemplate.Name.ToLowerInvariant()];
-            var extraPermissions = commandSpec?["additional_permissions"]?.ToObject<string[]>();
+            var extraPermissions = commandSpec?["additional_permissions"]?.ToObject<Permission[]>();
 
-            if (extraPermissions != null) {
-              var permissions = new string[extraPermissions.Length + 1];
+            if (extraPermissions == null) {
+              commandTemplate.Permissions = new Permission[] { defaultPermission };
+            } else {
+              // Concat additional permissions
+              var permissions = new Permission[extraPermissions.Length + 1];
 
+              // First is default permission
               permissions[0] = defaultPermission;
+
               Array.Copy(extraPermissions, 0, permissions, 1, permissions.Length - 1);
               commandTemplate.Permissions = permissions;
-            } else {
-              commandTemplate.Permissions = new[] { defaultPermission };
             }
           });
           return commandTemplate;
         })
-        .Where(template => template.Name != "test") // Ignore test command
         .OrderBy(template => template.Name)
-        .ForEach(template => { // Render template's
-          commandsMarkdown.AppendLine($"<a name=\"{template.Name}\"></a>"); // Quick Links
-          commandsMarkdown.AppendLine($"**Name:** {template.Name}  ");
+        .ForEach(template => {
+          // Render command template
+          var context = new VelocityContext();
 
-          if (!string.IsNullOrEmpty(template.Description)) {
-            commandsMarkdown.AppendLine($"**Description:** `{template.Description}`  ");
-          }
+          context.Put("name", template.Name);
+          context.Put("description", template.Description);
+          context.Put("aliases", template.Aliases);
+          context.Put("permissions", template.Permissions);
+          context.Put("usage", template.Usage != null ? $"/{template.Name} {template.Usage}" : null);
 
-          commandsMarkdown.AppendLine($"**Usage:** `/{template.Name}{(template.Usage == null ? "" : " " + template.Usage)}`  ");
+          Velocity.Evaluate(context, commandsMarkdownWriter, "commandgen", File.ReadAllText(commandTemplatePath));
+          commandsMarkdownWriter.Write("\n---\n");
 
-          if (template.Aliases != null && template.Aliases.Length > 0) {
-            commandsMarkdown.AppendLine("**Aliases:**  ");
-            template.Aliases.ForEach(alias => {
-              commandsMarkdown.AppendLine($" \\- `{alias}`  ");
-            });
-          }
-
-          if (template.Permissions != null && template.Permissions.Length > 0) {
-            commandsMarkdown.AppendLine("**Permissions:**  ");
-            template.Permissions.ForEach(perm => {
-              commandsMarkdown.AppendLine($" \\- `{perm}`  ");
-            });
-          }
-
-          commandsMarkdown.AppendLine().AppendLine("---");
+          // Add link to quicklinks
           quickLinksMarkdown.AppendLine($" * [{Capitalize(template.Name)}](#{template.Name})  ");
         });
 
-      var templatePath = Path.Combine(workingDirectory, "template.txt");
-      if (!File.Exists(templatePath)) {
-        Console.WriteLine("File not found: {0}", templatePath);
-        Environment.Exit(-1);
-      }
 
       var pageTemplate = File.ReadAllText(templatePath);
+      var commandsMarkdown = commandsMarkdownWriter.GetStringBuilder().ToString();
+
+      // Trim all lines
+      var lines = commandsMarkdown.Split('\n');
+      for (var i = 0; i < lines.Length; i++) {
+        lines[i] = lines[i].Trim();
+      }
+      commandsMarkdown = string.Join("\n", lines);
+
       File.WriteAllText(markdownOutputPath, string.Format(pageTemplate, quickLinksMarkdown, commandsMarkdown, DateTime.Now));
       Console.WriteLine("Done!");
     }
@@ -207,6 +208,38 @@ namespace WikiGen {
       return new string(chars);
     }
 
+    /// <summary>
+    ///
+    /// Markdown Example:
+    ///
+    /// Name: boom
+    /// Description: Create an explosion on player's/given position
+    /// Usage: /boom [player | * | x, y, z]
+    /// Aliases:
+    ///  - explode
+    /// Permissions:
+    ///  - essentials.command.boom
+    ///
+    /// </summary>
+    private struct CommandTemplate {
+
+      public string Name;
+      public string Usage;
+      public string Description;
+      public string[] Aliases;
+      public Permission[] Permissions;
+
+    }
+
+    private struct Permission {
+
+      [JsonProperty("value")]
+      public string Value { get; set; }
+
+      [JsonProperty("description")]
+      public string Description { get; set; }
+
+    }
   }
 
 }

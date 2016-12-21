@@ -19,13 +19,45 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using NVelocity;
+using NVelocity.App;
+using NVelocity.Runtime.Directive;
 
 namespace WikiGen {
 
   public class WikiGen {
 
     public static void Main(string[] args) {
+
+      /*Velocity.Init();
+      var context = new VelocityContext();
+      var writer = new StringWriter();
+
+      context.Put("name", "warp");
+      context.Put("description", "Teleport to a warp.");
+      context.Put("aliases", new [] { "alias1", "alias2" });
+      context.Put("permissions", new [] {
+        new KeyValuePair<string, string>("essentials.kit.bar", null),
+        new KeyValuePair<string, string>("essentials.kit.foo", null),
+        new KeyValuePair<string, string>("essentials.kit.'kit name'", "Allow use of specfied kit")
+      });
+
+      Velocity.Evaluate(context, writer, null, File.ReadAllText("D:/template.txt"));
+
+      // Trim all lines
+      var lines = writer.ToString().Split('\n');
+
+      for (var i = 0; i < lines.Length; i++) {
+        lines[i] = lines[i].Trim();
+      }
+
+      Console.WriteLine(string.Join("\n", lines));
+
+      return;*/
       if (args.Length == 0) {
         Console.WriteLine("Use `wikigen [commands]`" );
         Environment.Exit(-1);

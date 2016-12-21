@@ -1,0 +1,20 @@
+<a name="$name"></a>
+**Name:** $name<br>
+#if ($description)
+    **Description:** `$description`<br>
+#end
+#if ($usage)
+    **Usage:** `$usage`<br>
+#end
+#if ($aliases)
+    **Aliases:**<br>
+    #foreach($alias in $aliases)
+        \- `$alias`<br>
+    #end
+#end
+#if ($permissions)
+    **Permissions:**<br>
+    #foreach($perm in $permissions)
+        \- `$perm.Value`#if($perm.Description) **($perm.Description)** #end<br>
+    #end
+#end

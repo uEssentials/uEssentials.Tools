@@ -3,7 +3,7 @@
 
 ***
 
-> **TIP**: Use **Ctrl + F _(⌘ + F on mac)_** to find a specific command, or use Quick Links below.
+> **TIP**: Use **Ctrl + F _(⌘ + F on mac)_** to find a specific command.
 
 
 **Argument syntax: ```<optional> [required]```**
@@ -12,5 +12,6 @@
 ## Quick links:
 {0}
 
+---
 
 {1}

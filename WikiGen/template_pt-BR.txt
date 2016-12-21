@@ -1,0 +1,12 @@
+> **DICA**: Use **Ctrl + F _(⌘ + F no mac)_** para encontrar um comando específico.
+
+
+**Sintaxe dos argumentos: ```<opcional> [requerido]```**
+
+
+## Links Rápidos:
+{0}
+
+---
+
+{1}
