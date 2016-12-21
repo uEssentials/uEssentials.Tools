@@ -37,7 +37,8 @@ namespace WikiGen {
     /// <summary>
     /// arg 0 = working directory, resources must be in this directory.
     /// arg 1 = uEssentials assembly path
-    /// arg 21 = markdown output path
+    /// arg 2 = markdown output path
+    /// arg 3 = locale
     /// </summary>
     /// <param name="args"></param>
     public static void GenerateCommands(string[] args) {
