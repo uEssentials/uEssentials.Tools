@@ -12,11 +12,11 @@
     "additional_permissions": [
       {
         "value": "essentials.command.clearinventory.all",
-        "description": ""
+        "description": "Permite limpar o inventário de todos os jogadores (/ci *)"
       },
       {
         "value": "essentials.command.clearinventory.other",
-        "description": ""
+        "description": "Permite limpar o inventário de um jogador específico (/ci player)"
       }
     ]
   }
