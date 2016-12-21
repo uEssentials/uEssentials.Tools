@@ -143,7 +143,7 @@ namespace WikiGen {
             var extraPermissions = commandSpec?["additional_permissions"]?.ToObject<Permission[]>();
 
             if (extraPermissions == null) {
-              commandTemplate.Permissions = new Permission[] { defaultPermission };
+              commandTemplate.Permissions = new [] { defaultPermission };
             } else {
               // Concat additional permissions
               var permissions = new Permission[extraPermissions.Length + 1];
