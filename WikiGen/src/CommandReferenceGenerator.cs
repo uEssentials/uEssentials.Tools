@@ -168,7 +168,6 @@ namespace WikiGen {
           context.Put("usage", template.Usage != null ? $"/{template.Name} {template.Usage}" : null);
 
           Velocity.Evaluate(context, commandsMarkdownWriter, "commandgen", File.ReadAllText(commandTemplatePath));
-          commandsMarkdownWriter.Write("\n---\n");
 
           // Add link to quicklinks
           quickLinksMarkdown.AppendLine($" * [{Capitalize(template.Name)}](#{template.Name})  ");
