@@ -48,7 +48,6 @@ namespace WikiGen {
           break;
       }
 
-
 #if DEBUG
       Console.ReadKey();
 #endif
