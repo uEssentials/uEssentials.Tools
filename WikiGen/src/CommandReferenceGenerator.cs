@@ -19,6 +19,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -162,9 +163,9 @@ namespace WikiGen {
           var context = new VelocityContext();
 
           context.Put("name", template.Name);
-          context.Put("description", template.Description);
-          context.Put("aliases", template.Aliases);
-          context.Put("permissions", template.Permissions);
+          context.Put("description", EmptyToNull(template.Description));
+          context.Put("aliases", EmptyToNull(template.Aliases));
+          context.Put("permissions", EmptyToNull(template.Permissions));
           context.Put("usage", template.Usage != null ? $"/{template.Name} {template.Usage}" : null);
 
           Velocity.Evaluate(context, commandsMarkdownWriter, "commandgen", File.ReadAllText(commandTemplatePath));
@@ -205,6 +206,13 @@ namespace WikiGen {
       var chars = source.ToCharArray();
       chars[0] = char.ToUpper(chars[0]);
       return new string(chars);
+    }
+
+    private static T EmptyToNull<T>(T source) where T : IEnumerable {
+      if (source == null || !source.GetEnumerator().MoveNext()) {
+        return default(T);
+      }
+      return source;
     }
 
     /// <summary>
