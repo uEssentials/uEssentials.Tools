@@ -247,6 +247,7 @@ namespace WikiGen {
       public string Description { get; set; }
 
     }
+
   }
 
 }
